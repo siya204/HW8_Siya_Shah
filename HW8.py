@@ -57,12 +57,11 @@ def plot_rest_categories(db):
 
     x = list(dict.keys())
     y = list(dict.values())
-    fig = plt.figure(figsize=(10, 5))
     plt.barh(x, y)
     plt.xlabel("Number of Restaurants")
     plt.ylabel("Restaurant Categories")
     plt.title("Total Amount of Resteraunts per Category on South U St")
-    fig.savefig("rest_category_chart.png")
+    plt.tight_layout()
     plt.show()
 
     return dict    
@@ -73,7 +72,17 @@ def find_rest_in_building(building_num, db):
     restaurant names. You need to find all the restaurant names which are in the specific building. The restaurants 
     should be sorted by their rating from highest to lowest.
     '''
-    pass
+    conn = sqlite3.connect(db)
+    cur = conn.cursor()
+    cur.execute("SELECT restaurants.name FROM restaurants JOIN buildings ON restaurants.building_id = buildings.id WHERE buildings.building = (?) ORDER BY rating DESC", (building_num,))
+    conn.commit()
+
+    dict = []
+    for name in cur.fetchall():
+        dict.append(name[0])
+
+    return dict
+    
 
 
 #EXTRA CREDIT

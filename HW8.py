@@ -86,7 +86,7 @@ def find_rest_in_building(building_num, db):
 
 
 #EXTRA CREDIT
-#def get_highest_rating(db): #Do this through DB as well
+def get_highest_rating(db): #Do this through DB as well
     """
     This function return a list of two tuples. The first tuple contains the highest-rated restaurant category 
     and the average rating of the restaurants in that category, and the second tuple contains the building number 
@@ -96,7 +96,43 @@ def find_rest_in_building(building_num, db):
     The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
     in descending order (by rating).
     """
-    pass
+    conn = sqlite3.connect(db)
+    cur = conn.cursor()
+
+    # get highest-rated category and its average rating
+    cur.execute("SELECT categories.category, AVG(restaurants.rating) FROM categories JOIN restaurants ON categories.id = restaurants.category_id GROUP BY categories.category ORDER BY AVG(restaurants.rating) DESC LIMIT 1")
+    highest_category = cur.fetchall()[0]
+
+    # get highest-rated building and its average rating
+    cur.execute("SELECT buildings.building, AVG(restaurants.rating) FROM buildings JOIN restaurants ON buildings.id = restaurants.building_id GROUP BY buildings.building ORDER BY AVG(restaurants.rating) DESC LIMIT 1")
+    highest_building = cur.fetchall()[0]
+
+    # plot highest-rated categories
+    cur.execute("SELECT categories.category, AVG(restaurants.rating) FROM categories JOIN restaurants ON categories.id = restaurants.category_id GROUP BY categories.category ORDER BY AVG(restaurants.rating) DESC")
+    category_data = cur.fetchall()
+    category_labels = [x[0] for x in category_data]
+    category_ratings = [x[1] for x in category_data]
+    plt.subplot(1, 2, 1)
+    plt.barh(category_labels, category_ratings)
+    plt.xlabel("Average Rating")
+    plt.ylabel("Category")
+    plt.title("Highest-Rated Categories")
+
+    # plot highest-rated buildings
+    cur.execute("SELECT buildings.building, AVG(restaurants.rating) FROM buildings JOIN restaurants ON buildings.id = restaurants.building_id GROUP BY buildings.building ORDER BY AVG(restaurants.rating) DESC")
+    building_data = cur.fetchall()
+    building_labels = [x[0] for x in building_data]
+    building_ratings = [x[1] for x in building_data]
+    plt.subplot(1, 2, 2)
+    plt.barh(building_labels, building_ratings)
+    plt.xlabel("Average Rating")
+    plt.ylabel("Building")
+    plt.title("Highest-Rated Buildings")
+
+    plt.tight_layout()
+    plt.show()
+
+    return [highest_category, highest_building]
 
 #Try calling your functions here
 def main():
@@ -145,9 +181,9 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(len(restaurant_list), 3)
         self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
-    #def test_get_highest_rating(self):
-        #highest_rating = get_highest_rating('South_U_Restaurants.db')
-        #self.assertEqual(highest_rating, self.highest_rating)
+    def test_get_highest_rating(self):
+        highest_rating = get_highest_rating('South_U_Restaurants.db')
+        self.assertEqual(highest_rating, self.highest_rating)
 
 
 if __name__ == '__main__':
